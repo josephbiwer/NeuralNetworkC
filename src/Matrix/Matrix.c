@@ -192,8 +192,16 @@ Matrix* Matrix_multiply(Matrix *m1, Matrix *m2) {
 
 
 Matrix* Matrix_transpose(Matrix *m) {	
-	//char str = get_raw_intput_str(m);
-	return NULL;
+	Matrix *data = Matrix_create(m->columns, m->rows);
+
+	int i, j;
+
+	for(i = 0; i < m->rows; i++)
+		for(j = 0; j < m->columns; j++)
+			*(data->matrix + i + m->rows * j) = *(m->matrix + i * m->columns + j); 
+
+
+	return data;
 }
 
 
@@ -234,6 +242,3 @@ char* get_raw_input_str(Matrix *m) {
 	//return buffer;
 	return "test";
 }
-
-
-

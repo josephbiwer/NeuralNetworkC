@@ -25,6 +25,15 @@ typedef struct {
 Matrix* Matrix_create(int, int);
 
 /**
+ * @brief Creates a vector (1-n matrix) and returns it to the user
+ * @brief data Input data 
+ * @brief row Amount of rows
+ * @brief col Amount of columns
+ * @return Newly created Matrix
+ */
+Matrix* Matrix_set(float [], int, int);
+
+/**
  * @brief Print the matrix to the terminal
  * @param m Pointer to the matrix that is to be printed
  * @return None

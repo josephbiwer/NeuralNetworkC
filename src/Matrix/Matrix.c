@@ -33,6 +33,13 @@ Matrix* Matrix_create(int rows, int columns) {
 }
 
 
+Matrix* Matrix_set(float data[], int row, int col) {
+	Matrix *m = Matrix_create(row, col);
+	m->matrix = data;
+	return m;
+}
+
+
 void Matrix_print(Matrix *m) {
 	int i, j;
 	for(i = 0; i < m->rows; i++) {

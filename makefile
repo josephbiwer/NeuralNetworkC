@@ -17,3 +17,7 @@ $(OBJ)/main.o: $(SRC)/main.c
 $(OBJ)/matrix.o: src/Matrix/Matrix.c src/Matrix/Matrix.h src/Matrix/config.h
 	@echo Compiling Matrix library:  $<
 	$(CC) -c -o $@ $<
+
+$(OBJ)/nn.o: src/nn/nn.c src/nn/nn.h
+	@echo Compiling neural network library: $<
+	$(CC) -c -o $@ $<

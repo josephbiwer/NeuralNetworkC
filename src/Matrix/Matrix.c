@@ -96,11 +96,7 @@ Matrix* Matrix_rawInput(char *input) {
 
 	// Gathering data
 	float *data = malloc(sizeof(float) * rows * columns);
-	//if(strings[0][0] != '[' || strings[rows-1][(sizeof(strings[rows-1])/sizeof(char))-1] != ']') {
-	//	printf(" Please check your syntax\n");
-	//	return NULL;
-	//}
-
+	
 	// Processing data into array
 	int i = 0;
 	int j;
@@ -200,7 +196,14 @@ Matrix* Matrix_multiply(Matrix *m1, Matrix *m2) {
 
 Matrix* Matrix_transpose(Matrix *m) {	
 	//char str = get_raw_intput_str(m);
-	return NULL;
+	Matrix *m_t = Matrix_create(m->columns, m->rows);
+
+	int i, j;
+	for(i = 0; i < m->rows; i++)
+		for(j = 0; j < m->columns; j++)
+			*(m_t->matrix + j * m_t->columns + i) = *(m->matrix + i * m->columns + j); 
+
+	return m_t;
 }
 
 

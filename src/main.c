@@ -15,8 +15,9 @@ int main(int argc, char **argv) {
 
 	printf("creating vector\n");
 	Matrix *vec = Matrix_set(data, 1, sizeof(data)/sizeof(int));
+	Matrix *vec_t = Matrix_transpose(vec);
 
-	Matrix_print(vec);
+	Matrix_print(vec_t);
 
 	return 0;
 }

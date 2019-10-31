@@ -1,4 +1,4 @@
-#Neural Network - C Library
+# Neural Network - C Library
 Neural network library with feed forward functionality **only**
 
 API docs have not yet been made, please refer to the header files for more information

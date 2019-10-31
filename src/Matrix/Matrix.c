@@ -60,7 +60,7 @@ void Matrix_randomize(Matrix *m) {
 	int i, j;
 	for(i = 0; i < m->rows; i++)
 		for(j = 0; j < m->columns; j++)
-			*(m->matrix + i*m->columns + j) = rand() % MATRIX_MAX_DATA; 
+			*(m->matrix + i*m->columns + j) = (rand() % MATRIX_MAX_DATA) * 0.001f; 
 }
 
 
@@ -206,6 +206,18 @@ Matrix* Matrix_transpose(Matrix *m) {
 	return m_t;
 }
 
+
+Matrix* Matrix_map(float (*func)(float), Matrix *m) {
+
+	Matrix *m_map = Matrix_create(m->rows, m->columns);
+	
+	int i, j;
+	for(i = 0; i < m->rows; i++)
+		for(j = 0; j < m->columns; j++)
+			*(m_map->matrix + i*m_map->columns + j) = (*func)(*(m->matrix + i*m->columns + j));
+
+	return m_map;
+}
 
 
 

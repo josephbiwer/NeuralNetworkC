@@ -16,12 +16,12 @@ typedef struct {
 	int hidden_layers;
 	int hidden_nodes;
 	int outputs;
-} Architecture;
+} Architecture; /**< Architecture of the neural network used for initialization */
 
 typedef struct {
 	Architecture arch;
 	Matrix *hidden;
-} NeuralNetwork;
+} NeuralNetwork; /**< Neuralnetwork struct for initializing the network. You must intialize the network architecture before performing and neural network operations */
 
 /**
  * @brief Feed forward algorithm for Neural Network

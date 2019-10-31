@@ -25,6 +25,15 @@ typedef struct {
 Matrix* Matrix_create(int, int);
 
 /**
+ * @brief Creates a vector (1-n matrix) and returns it to the user
+ * @brief data Input data 
+ * @brief row Amount of rows
+ * @brief col Amount of columns
+ * @return Newly created Matrix
+ */
+Matrix* Matrix_set(float [], int, int);
+
+/**
  * @brief Print the matrix to the terminal
  * @param m Pointer to the matrix that is to be printed
  * @return None
@@ -49,6 +58,15 @@ Matrix*  Matrix_rawInput(char *);
 // ---------- Element-wise Operations -----------
 
 /**
+ * @brief Map the specified function to the elements of the specified matrix
+ * @param func Function to run each element of the matrix through
+ * @param m 	Matrix to perform the function operation on
+ * @return res	Resulting matrix
+ */
+Matrix* Matrix_map(float (*f)(float), Matrix *);
+
+
+/**
  * @brief Perform the transpose operation on the specified matrix, then return the result to the user
  * @param m Original matrix
  * @return Transposed matrix.
@@ -69,7 +87,7 @@ Matrix* Matrix_dotProduct(Matrix *, Matrix *);
  * @param m2 Matrix two
  * @return Newly created matrix which is the sum of the two matricies (element-wise) passed to the function, null will be returned if invalid matricies were passed to the function
  */
-Matrix* Matrix_subtract(Matrix *, Matrix*);
+Matrix* Matrix_subtract(Matrix *, Matrix *);
 
 /**
  * @brief Perform element-wise addition on the two matricies and return a new matrix to the user
@@ -77,7 +95,7 @@ Matrix* Matrix_subtract(Matrix *, Matrix*);
  * @param m2 Matrix two
  * @return Newly created matrix which is the sum of the two matricies (element-wise) passed to the function, null will be returned if invalid matricies were passed to the function
  */
-Matrix* Matrix_add(Matrix *, Matrix*);
+Matrix* Matrix_add(Matrix *, Matrix *);
 
 /**
  * @brief Multiply the two matricies together [m1 x m2]
@@ -85,6 +103,6 @@ Matrix* Matrix_add(Matrix *, Matrix*);
  * @param m2 Matrix two
  * @return Newly create matrix that is the product of the two specified matricies
  */
-Matrix* Matrix_multiply(Matrix *, Matrix*);
+Matrix* Matrix_multiply(Matrix *, Matrix *);
 
 #endif /* _MATRIX_H */

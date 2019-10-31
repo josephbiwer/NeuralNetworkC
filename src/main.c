@@ -57,9 +57,6 @@ int main(int argc, char **argv) {
 	//Matrix *weights1 = Matrix_create(inputLength, HIDDEN_NODE_COUNT);
 	//Matrix_randomize(weights1);
 
-	//// Calculating cross product
-	//Matrix *prod = Matrix_multiply(input_vec, weights1);	
-
 	//// Printing results
 	//printf("\nInput vector:\n");
 	//Matrix_print(input_vec);
@@ -67,6 +64,18 @@ int main(int argc, char **argv) {
 	//Matrix_print(weights1);
 	//printf("\nOutput matrix\n");
 	//Matrix_print(prod);
+
+
+	printf("\n\nTransposed matrix:\n");
+
+	Matrix *matrix_T = Matrix_transpose(matrix);
+	
+	Matrix_print(matrix_T);
+
+
+	// Creating hidden node vector
+		
+
 
 	return 0;
 }

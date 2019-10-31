@@ -66,11 +66,11 @@ int main(int argc, char **argv) {
 	//Matrix_print(prod);
 
 
-	printf("\n\nTransposed matrix:\n");
+	//printf("\n\nTransposed matrix:\n");
 
-	Matrix *matrix_T = Matrix_transpose(matrix);
-	
-	Matrix_print(matrix_T);
+	//Matrix *matrix_T = Matrix_transpose(matrix);
+	//
+	//Matrix_print(matrix_T);
 
 
 	// Creating hidden node vector

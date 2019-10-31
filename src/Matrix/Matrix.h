@@ -16,7 +16,7 @@
 typedef struct {
 	float *matrix;
 	int rows, columns;
-} Matrix;	/**< Holds the dat of the matrix and the row/column count */
+} Matrix;	/**< Holds the data of the matrix and the row/column count */
 
 /**
  * @brief Creates a new matrix and returns it to the user

@@ -1,23 +1,23 @@
 SRC := src
 BUILD := build
-OBJ := $(BUILD)/obj
+SOURCES := main.o $(BUILD)/obj/matrix.o $(BUILD)/obj/nn.o
 CC := cc
 
-# Should be using this for the wildcard definition in 'build' rule -- not workgin
-#objs := $(OBJ)/$(wildcard *.o)
+all: $(BUILD)/obj/$(SOURCES)
+	@echo Compiling main program: $^
+	$(CC) -o $(BUILD)/run $^ 
 
-build: $(OBJ)/*.o
-	@echo Searching object directory for build files: $(OBJ)/$(objs)
-	$(CC) $^ -o $(BUILD)/run
+debug: $(BUILD)/obj/$(SOURCES)
+	@echo Compiling main program: $^
+	@echo \*\*\* DEBUGGING
+	$(CC) -DDEBUG -o $(BUILD)/run $^ 
 
-$(OBJ)/main.o: $(SRC)/main.c
-	@echo Compiling main file
+$(BUILD)/obj/main.o: $(SRC)/main.c
 	$(CC) -c -o $@ $<
 
-$(OBJ)/matrix.o: src/Matrix/Matrix.c src/Matrix/Matrix.h src/Matrix/config.h
-	@echo Compiling Matrix library:  $<
+$(BUILD)/obj/matrix.o: $(SRC)/Matrix/Matrix.c $(SRC)/Matrix/Matrix.h $(SRC)/Matrix/config.h
+	@echo Compiling obj file and placing in: $@
 	$(CC) -c -o $@ $<
 
-$(OBJ)/nn.o: src/nn/nn.c src/nn/nn.h
-	@echo Compiling neural network library: $<
+$(BUILD)/obj/nn.o: $(SRC)/nn/nn.c $(SRC)/nn/nn.h
 	$(CC) -c -o $@ $<

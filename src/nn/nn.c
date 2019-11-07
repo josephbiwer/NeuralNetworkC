@@ -11,16 +11,30 @@
 #include "nn.h"
 #include "../Matrix/Matrix.h"
 
+
+
+/************* Private functions *************/
 static float
 sigmoid(float x) {
 	return 1 / (1 + exp(-x));
 }
 
-Matrix* NN_sigmoid_map(Matrix *m) {
+static Matrix*
+NN_sigmoid_map(Matrix *m) {
 	Matrix *result;								// Create new Matrix element
 	result = Matrix_map(sigmoid, m);			// Map sigmoid function to the matrix elements
 	return result;									// Return result
 }
+/*********************************************/
+
+
+
+
+/************* Public functions *************/
+void NN_set(Matrix *m, NeuralNetwork *nn) {
+	// Set NN	
+}
+
 
 Matrix* NN_feedforward(NeuralNetwork nn, float data[]) {
 
@@ -31,53 +45,85 @@ Matrix* NN_feedforward(NeuralNetwork nn, float data[]) {
 
 
 	float weights_1[] = {\
-		4.6013571, 4.17197193, -6.30956245, -4.19745118,\
-		-2.58413484, -5.81447929, -6.60793435, -3.68396123,\
-		0.97538679, -2.02685775,  2.52949751,  5.84371739\
+		0.43539230051843947,-0.02065032825041091,0.019108774130658146,-0.18793425230191763,	\
+		0.5730059800179077,-0.3985145796820122,0.45247556261757094,-0.14951021311829882,		\
+		0.0867230415726905,-0.951140545578671,-0.34949493270378973,-0.5640115159285255,		\
+		0.8443632238447829,0.30048712084207874,0.48626392300583143,-0.6085350062085038,		\
+		-0.5295328147011433,-0.9232621663022922,0.5697627157639107,-0.41763286028598445		\
 	};
 
 	float weights_2[] = {\
-		-6.96765763, 7.14101949, -10.31917382, 7.86128405 \
+		165.34432400804772,-184.4962265107306,-235.68403926131995,-217.46373814544663,		\
+		0.903049491787723,-0.09600119869105694,-0.12902490689994806,0.6458222230959201,		\
+		166.4229893725542,-183.3935384234813,-236.73138036584993,-216.7631329707076,			\
+		-0.28657341286209603,0.4438008781030547,0.15319508736841803,0.1728806681154469		\
 	};
+	
+	float b_1[] = {0.0,1.9970720598181246e-80,0.0,-1.0699438457691551e-76};	
 
-	//float weights_1[] = {\
-	//	-0.7293232853137476,-2.1108090460232027,-25.178581297772112,-0.36801674821014524,\
-	//	-0.07287903009066131,-2.55820960369953,-25.71439551784894,1.1231184084580337,\
-	//	-0.4641366439676461,-2.1569454551827567,-25.313741274462522,1.045332789520029,\
-	//	-0.2497214493659639,-2.061087243919641,-25.339871447104564,-0.42549378931308357,\
-	//	-0.5489018487848367,-1.3348059924216866,-23.64128678222155,1.064103346821578\
-	//};
-
-	//float weights_2[] = {\
-	//	-0.24730947968676564,-0.906186455270056,\
-	//	0.3923798168371024,-0.2813871481357332,\
-	//	15.146355132976614,-21.428578160356825,\
-	//	31.926314856202108,-42.28649232320101\
-	//};
+	float b_2[] = {165.82511434556375,-183.9384511051835,-236.66256225438315,-217.70618586720568};
 
 	Matrix *syn_weights_1 = Matrix_set(weights_1, nn.arch.inputs, nn.arch.hidden_nodes);			// Creating first layer of weights
 	Matrix *syn_weights_2 = Matrix_set(weights_2, nn.arch.hidden_nodes, nn.arch.outputs);			// Creating second layer of weights
+	Matrix *bias_1 = Matrix_set(b_1, 1, nn.arch.hidden_nodes);											// Creating bias for first layer of hidden nodes
+   Matrix *bias_2 = Matrix_set(b_2, 1, nn.arch.outputs);													// Creating bias for output nodes	
 
-	//#ifdef DEBUG
-		printf(" ----- Definied Matricies -----\n");						// If debugging, print data to the console
-		printf("input:\n");
-		Matrix_print(inputs);
-		printf("\nhidden:\n");
-		Matrix_print(hidden);
-		printf("output:\n");
-		Matrix_print(output);
-		printf("\n\nsyn_weights_1:\n");
-		Matrix_print(syn_weights_1);
-		printf("\nsyn_weights_2:\n");
-		Matrix_print(syn_weights_2);
-		printf(" ------------------------------\n\n");
-	//#endif
+#ifdef DEBUG
+	printf(" ----- Definied Matricies -----\n");						// If debugging, print data to the console
+	printf("input:\n");
+	Matrix_print(inputs);
+	printf("\nhidden:\n");
+	Matrix_print(hidden);
+	printf("output:\n");
+	Matrix_print(output);
+	printf("\n\nsyn_weights_1:\n");
+	Matrix_print(syn_weights_1);
+	printf("\nsyn_weights_2:\n");
+	Matrix_print(syn_weights_2);
+	printf("\n\nbias_1:\n");
+	Matrix_print(bias_1);
+	printf("\nbias_2:\n");
+	Matrix_print(bias_2);
+	printf(" ------------------------------\n\n");
+
+	printf("\n Training the network\n\n");
+#endif
 	
-	Matrix *l0 = inputs;
-	Matrix *l1 = NN_sigmoid_map(Matrix_multiply(l0, syn_weights_1));
-	Matrix *l2 = NN_sigmoid_map(Matrix_multiply(l1, syn_weights_2));
+	// ----- Feed Forward Algorithm -----
+	Matrix *l0 = inputs;												// layer 0 - inputs
+	Matrix *l1 = Matrix_multiply(l0, syn_weights_1);		// layer 1 - hidden layer (multiplying inputs by first layer of weights)
 
-	return l2;	
+#ifdef DEBUG
+	printf("l1 - before adding bias\n");
+	Matrix_print(l1);
+#endif
+
+	l1 = Matrix_add(l1, bias_1);									// 			adding bias to layer 1
+
+#ifdef DEBUG
+	printf("l1 - before sigmoid: \n");
+	Matrix_print(l1);
+#endif
+
+	l1 = NN_sigmoid_map(l1);										// 			activation function
+
+	Matrix *l2 = Matrix_multiply(l1, syn_weights_2);		// layer 2 - output layer (multiplying hidden layer by second layer of weights)
+
+#ifdef DEBUG
+	printf("l2 - before adding bias\n");
+	Matrix_print(l2);
+#endif
+
+	l2 = Matrix_add(l2, bias_2);									// 			adding bias to layer 2
+
+#ifdef DEBUG
+	printf("l2 - before sigmoid map\n");
+	Matrix_print(l2);
+#endif
+
+	l2 = NN_sigmoid_map(l2);										//				activation function
+
+	return l2;															// Return the output of the network
 }
 
 

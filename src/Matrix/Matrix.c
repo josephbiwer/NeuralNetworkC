@@ -7,7 +7,6 @@
 
 
 #include "Matrix.h"
-#include "./config.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -18,6 +17,10 @@
 
 /****************** Private Declarations ******************/
 static char* get_raw_input_str(Matrix*);
+
+
+
+#define DISPLAY_OFFSET				5
 
 
 

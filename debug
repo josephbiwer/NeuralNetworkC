@@ -1,2 +1,2 @@
-make CFLAGS=-DDEBUG -s
+make CFLAGS=-DDEBUG -s -B
 ./build/run

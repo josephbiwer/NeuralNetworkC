@@ -19,9 +19,14 @@ typedef struct {
 } Architecture; /**< Architecture of the neural network used for initialization */
 
 typedef struct {
+	int index;
+	Matrix *data;
+} Layer;			/**< Neural Network that holds the layers of the network in an array */
+
+typedef struct {
 	Architecture arch;
-	Matrix *hidden;
-} NeuralNetwork; /**< Neuralnetwork struct for initializing the network. You must intialize the network architecture before performing and neural network operations */
+	Layer *layers;
+} NeuralNetwork; /**< Neuralnetwork struct for initializing the network. The struct consists of a struct that defines the architecture of the network as well as holds the data of each portion of the network. You must intialize the network architecture before performing and neural network operations */
 
 /**
  * @brief Feed forward algorithm for Neural Network
@@ -31,10 +36,18 @@ typedef struct {
 Matrix* NN_feedforward(NeuralNetwork, float[]);
 
 /**
+ * @brief Declare layers of the network
+ * @param m	Array of matricies (Matrix struct) in the desired order (example: inputs, weights_1, bias_1, output)
+ * @param nn Neural Network to assign the layers to
+ * @return none
+ */
+void NN_set(Matrix *, NeuralNetwork *);
+
+/**
  * @brief Map the sigmoid function to the specified matrix
  * @param m Matrix to apply the sigmoid function to
  * @return result Resulting matrix from sigmoid function
  */
-Matrix* NN_sigmoid_map(Matrix *);
+//Matrix* NN_sigmoid_map(Matrix *);
 
 #endif /* _NN_H */

@@ -1,52 +1,37 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
+/**
+ * @file main.c
+ * @author Joe Biwer
+ * @date 10-24-2019
+ * @brief Entry point to the sample program that shows basic configuration of the neural network and how to use it for processing data
+ */
+
+
 #include "Matrix/Matrix.h"
 #include "nn/nn.h"
-#include "./config.h"
-#include "./fileio/fileio.h"
+
 
 
 int main(int argc, char **argv) {
 
-#ifdef DEBUG
-	printf("-------- Neural Network Library in C --------\n");
-	printf(" Note: Matrix library is fully documented, still working on document\n");
-	printf(" Debugging program\n");
-	printf("---------------------------------------------\n\n");
-#endif
-
-	// Loading NN data into memory
-	CSVData *weights_1 = csv_read("data/weights_1.csv");
-	CSVData *weights_2 = csv_read("data/weights_2.csv");
-	CSVData *bias_1 = csv_read("data/bias_1.csv");
-	CSVData *bias_2 = csv_read("data/bias_2.csv");
-
-	// Testing to make sure that the values were indeed read into memory (and that the algo to load into memory works)
-	Matrix *w_1 = Matrix_set(csvtofloat(weights_1), weights_1->rows, weights_1->cols);
-	printf("weights_1 matrix:\n");
-	Matrix_print(w_1);
-	printf("\n");
-
-	// Sample program
+	// Simulating data coming in from the CAN bus
+	float input_data[] = {195, 195, 40, 195, 195};
+	
+	// Initialize neural network
 	NeuralNetwork nn = (NeuralNetwork){						\
 		.arch = (Architecture){									\
 			.inputs = 5,											\
 			.hidden_layers = 1,									\
-			.hidden_nodes = 4,									\
+			.hidden_nodes = 6,									\
 			.outputs = 4											\
 		}																\
 	};
 
-	// Get input data from can bus and convert data to float variables
-	float input_data[] = {195,195,10,195,195};
-
+	// Result of the network (access array of values: result->matrix[i])
 	Matrix *result = NN_feedforward(nn, input_data);
 
-#ifdef DEBUG
-	printf("\n ***** Result *****\n");
-#endif
+
+
+	// Printing resulting matrix to the terminal
 	Matrix_print(result);
 
 	return 0;

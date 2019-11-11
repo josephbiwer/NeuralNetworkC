@@ -13,8 +13,7 @@
 
 typedef struct {
 	int inputs;
-	int hidden_layers;
-	int hidden_nodes;
+	int hidden;
 	int outputs;
 } Architecture; /**< Architecture of the neural network used for initialization */
 

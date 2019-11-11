@@ -30,18 +30,16 @@ int main(int argc, char **argv) {
 	m[2] = Matrix_set(csvtofloat(weights_2), weights_2->rows, weights_2->cols);
 	m[3] = Matrix_set(csvtofloat(bias_2), bias_2->rows, bias_2->cols);
 
-	// Sample program
-	NeuralNetwork nn = (NeuralNetwork){						\
-		.arch = (Architecture){									\
-			.inputs = 5,											\
-			.hidden_layers = 1,									\
-			.hidden_nodes = 4,									\
-			.outputs = 4											\
-		}																\
-	};
+	// Initializing neural network
+	NeuralNetwork nn;
 
 	// Setting the layers of the neural network
 	NN_set(m, 4, &nn);
+
+	printf("\n - inputs: %d\n", nn.arch.inputs);
+	printf("\n - hidden_layers: %d\n", nn.arch.hidden);
+	printf("\n - outputs: %d\n", nn.arch.outputs);
+
 
 #ifdef DEBUG
 	printf("Neural Network layer data:\n");
@@ -56,7 +54,6 @@ int main(int argc, char **argv) {
 	// Get input data from can bus and convert data to float variables
 	float input_data[] = {195,195,195,195,195};
 	printf("input data:\n   ");
-	int i;
 	for(i = 0; i < 5; i++) {
 		printf("%6.3f ", input_data[i]);
 	}

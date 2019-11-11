@@ -40,10 +40,11 @@ NN_sigmoid_map(Matrix *m) {
  * @brief Remap the layers array (weights and biases) to a new layers array that contains the nodes values (inputs, hidden nodes, outputs)
  * @param m Array of Matrix points, passed by reference. [**m -> Array of Matrix pointers, *(x) -> passed by ref]
  * @param size Size of the original layers array
+ * @param nn Neural Network struct for manipulating the architecture
  * @retun new_size The size of the new_layers array
  */
 static int 
-NN_remap_layers(Matrix *(**m), int size) {
+NN_remap_layers(Matrix *(**m), int size, NeuralNetwork *nn) {
 
 	// loop through the matricies to obtain each individual layer
 	// The layer array architecture is as such: weights, bias, weights, bias, ....
@@ -53,22 +54,29 @@ NN_remap_layers(Matrix *(**m), int size) {
 
 	Matrix **new_layers = (Matrix **) malloc(sizeof(Matrix *) * new_size);			// Allocating memory for new layers array
 
+	int hidden_count = 0;						// Setting hidden layer counter to 0, set at end of network
+
 	int i;
 	for(i = 0; i < size; i+=2) {				// Create each layer of the network
 
 		int index = (i * 2) - 1;				// Starting index for the layer in the new_layers array
 														// Note: Each layer has 4 components (input, weights, bias, outputs)
-
+														
 		if(index == -1) {							// Input layer, creating empty matrix
 			index = 0;								// 0-based indexing, need to remap the index of the layers array to 0
 			new_layers[0] = Matrix_create(1, (*m)[0]->rows);				// Declaring inputs
-		}	
+			nn->arch.inputs = (*m)[0]->rows;	// Setting length of input array
+		} else if(i < (size - 1))				// Increment count of hidden layer node if it isn't a hidden layer
+			hidden_count++;	
 
 		new_layers[index + 1] = (*m)[i];			// Weights matrix
 		new_layers[index + 2] = (*m)[i + 1];	// Bias matrix
-		new_layers[index + 3] = Matrix_create(1, (*m)[i+1]->columns);		// Hidden layer
+		new_layers[index + 3] = Matrix_create(1, (*m)[i+1]->columns);		// Next layer of nodes 
 
 	}
+
+	nn->arch.hidden = hidden_count;			// Setting number of hidden layers
+	nn->arch.outputs = (*m)[size-1]->columns;	// Setting number of output nodes
 
 	*m = new_layers;								// Resetting the 2-D array that was passed by reference
 	return new_size;								// Returning new size of the array
@@ -82,7 +90,7 @@ NN_remap_layers(Matrix *(**m), int size) {
 /************* Public functions *************/
 void NN_set(Matrix **m, int size, NeuralNetwork *nn) {
 
-	int new_size = NN_remap_layers(&m, size);		// Remap the layers array to include layers of nodes as well
+	int new_size = NN_remap_layers(&m, size, nn);		// Remap the layers array to include layers of nodes as well
 
 	// Declaring NN values
 	nn->layers = m;								// Setting nn layer data

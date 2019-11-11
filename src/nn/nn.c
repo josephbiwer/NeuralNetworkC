@@ -11,73 +11,99 @@
 #include "nn.h"
 #include "../Matrix/Matrix.h"
 
+
+
+/************* Private functions *************/
+/**
+ * @brief Maps the value to the output of the sigmoid function at that point
+ * @param x Value that is to be evalutated in the Sigmoid function
+ * @return value Output of the sigmoid value evaluated at point x
+ */
 static float
 sigmoid(float x) {
 	return 1 / (1 + exp(-x));
 }
 
-Matrix* NN_sigmoid_map(Matrix *m) {
+/**
+ * @brief Map every point in the Matrix through the sigmoid function
+ * @param m Matrix to perform the operation on
+ * @return result	A Matrix with every value evaluated at its corresponding point in the sigmoid function
+ */
+static Matrix*
+NN_sigmoid_map(Matrix *m) {
 	Matrix *result;								// Create new Matrix element
 	result = Matrix_map(sigmoid, m);			// Map sigmoid function to the matrix elements
 	return result;									// Return result
 }
 
-Matrix* NN_feedforward(NeuralNetwork nn, float data[]) {
+/**
+ * @brief Remap the layers array (weights and biases) to a new layers array that contains the nodes values (inputs, hidden nodes, outputs)
+ * @param m Array of Matrix points, passed by reference. [**m -> Array of Matrix pointers, *(x) -> passed by ref]
+ * @param size Size of the original layers array
+ * @retun new_size The size of the new_layers array
+ */
+static int 
+NN_remap_layers(Matrix *(**m), int size) {
 
-	// ----- Building architecture of network -----
-	Matrix *inputs = Matrix_set(data, 1, nn.arch.inputs);				// Defining vector and setting to input data
-	Matrix *hidden = Matrix_create(1, nn.arch.hidden_nodes);			// Creating vector for input nodes
-	Matrix *output = Matrix_create(1, nn.arch.outputs); 				// Creating vector for output nodes
+	// loop through the matricies to obtain each individual layer
+	// The layer array architecture is as such: weights, bias, weights, bias, ....
+	// 	Therefore, the matricies array should be of an even number length
+
+	int new_size = ((size / 2) * 3) + 1;	// Determining new size of the layers array
+
+	Matrix **new_layers = (Matrix **) malloc(sizeof(Matrix *) * new_size);			// Allocating memory for new layers array
+
+	int i;
+	for(i = 0; i < size; i+=2) {				// Create each layer of the network
+
+		int index = (i * 2) - 1;				// Starting index for the layer in the new_layers array
+														// Note: Each layer has 4 components (input, weights, bias, outputs)
+
+		if(index == -1) {							// Input layer, creating empty matrix
+			index = 0;								// 0-based indexing, need to remap the index of the layers array to 0
+			new_layers[0] = Matrix_create(1, (*m)[0]->rows);				// Declaring inputs
+		}	
+
+		new_layers[index + 1] = (*m)[i];			// Weights matrix
+		new_layers[index + 2] = (*m)[i + 1];	// Bias matrix
+		new_layers[index + 3] = Matrix_create(1, (*m)[i+1]->columns);		// Hidden layer
+
+	}
+
+	*m = new_layers;								// Resetting the 2-D array that was passed by reference
+	return new_size;								// Returning new size of the array
+
+}
+/*********************************************/
 
 
-	float weights_1[] = {\
-		4.6013571, 4.17197193, -6.30956245, -4.19745118,\
-		-2.58413484, -5.81447929, -6.60793435, -3.68396123,\
-		0.97538679, -2.02685775,  2.52949751,  5.84371739\
-	};
 
-	float weights_2[] = {\
-		-6.96765763, 7.14101949, -10.31917382, 7.86128405 \
-	};
 
-	//float weights_1[] = {\
-	//	-0.7293232853137476,-2.1108090460232027,-25.178581297772112,-0.36801674821014524,\
-	//	-0.07287903009066131,-2.55820960369953,-25.71439551784894,1.1231184084580337,\
-	//	-0.4641366439676461,-2.1569454551827567,-25.313741274462522,1.045332789520029,\
-	//	-0.2497214493659639,-2.061087243919641,-25.339871447104564,-0.42549378931308357,\
-	//	-0.5489018487848367,-1.3348059924216866,-23.64128678222155,1.064103346821578\
-	//};
+/************* Public functions *************/
+void NN_set(Matrix **m, int size, NeuralNetwork *nn) {
 
-	//float weights_2[] = {\
-	//	-0.24730947968676564,-0.906186455270056,\
-	//	0.3923798168371024,-0.2813871481357332,\
-	//	15.146355132976614,-21.428578160356825,\
-	//	31.926314856202108,-42.28649232320101\
-	//};
+	int new_size = NN_remap_layers(&m, size);		// Remap the layers array to include layers of nodes as well
 
-	Matrix *syn_weights_1 = Matrix_set(weights_1, nn.arch.inputs, nn.arch.hidden_nodes);			// Creating first layer of weights
-	Matrix *syn_weights_2 = Matrix_set(weights_2, nn.arch.hidden_nodes, nn.arch.outputs);			// Creating second layer of weights
+	// Declaring NN values
+	nn->layers = m;								// Setting nn layer data
+	nn->layer_count = new_size;				// Setting layer count for future operations
 
-	//#ifdef DEBUG
-		printf(" ----- Definied Matricies -----\n");						// If debugging, print data to the console
-		printf("input:\n");
-		Matrix_print(inputs);
-		printf("\nhidden:\n");
-		Matrix_print(hidden);
-		printf("output:\n");
-		Matrix_print(output);
-		printf("\n\nsyn_weights_1:\n");
-		Matrix_print(syn_weights_1);
-		printf("\nsyn_weights_2:\n");
-		Matrix_print(syn_weights_2);
-		printf(" ------------------------------\n\n");
-	//#endif
-	
-	Matrix *l0 = inputs;
-	Matrix *l1 = NN_sigmoid_map(Matrix_multiply(l0, syn_weights_1));
-	Matrix *l2 = NN_sigmoid_map(Matrix_multiply(l1, syn_weights_2));
-
-	return l2;	
 }
 
 
+Matrix* NN_feedforward(NeuralNetwork nn, float data[]) {
+
+	// Declaring inputs of network
+	nn.layers[0] = Matrix_set(data, 1, nn.arch.inputs);	
+
+	// Feed forward algorithm
+	int i;
+	for(i = -1; i < nn.layer_count; i+=4) {
+		int index = (i == -1)? 0: i;			// Remapping index 0, otherwise [index = i]
+		Matrix *data = Matrix_multiply(nn.layers[index], nn.layers[index+1]);
+		data = Matrix_add(data, nn.layers[index+2]);
+		nn.layers[index+3] = NN_sigmoid_map(data);
+	}
+
+	return nn.layers[nn.layer_count - 1];	// Return output layer
+}

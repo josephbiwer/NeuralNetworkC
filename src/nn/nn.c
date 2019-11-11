@@ -14,16 +14,65 @@
 
 
 /************* Private functions *************/
+/**
+ * @brief Maps the value to the output of the sigmoid function at that point
+ * @param x Value that is to be evalutated in the Sigmoid function
+ * @return value Output of the sigmoid value evaluated at point x
+ */
 static float
 sigmoid(float x) {
 	return 1 / (1 + exp(-x));
 }
 
+/**
+ * @brief Map every point in the Matrix through the sigmoid function
+ * @param m Matrix to perform the operation on
+ * @return result	A Matrix with every value evaluated at its corresponding point in the sigmoid function
+ */
 static Matrix*
 NN_sigmoid_map(Matrix *m) {
 	Matrix *result;								// Create new Matrix element
 	result = Matrix_map(sigmoid, m);			// Map sigmoid function to the matrix elements
 	return result;									// Return result
+}
+
+/**
+ * @brief Remap the layers array (weights and biases) to a new layers array that contains the nodes values (inputs, hidden nodes, outputs)
+ * @param m Array of Matrix points, passed by reference. [**m -> Array of Matrix pointers, *(x) -> passed by ref]
+ * @param size Size of the original layers array
+ * @retun new_size The size of the new_layers array
+ */
+static int 
+NN_remap_layers(Matrix *(**m), int size) {
+
+	// loop through the matricies to obtain each individual layer
+	// The layer array architecture is as such: weights, bias, weights, bias, ....
+	// 	Therefore, the matricies array should be of an even number length
+
+	int new_size = ((size / 2) * 3) + 1;	// Determining new size of the layers array
+
+	Matrix **new_layers = (Matrix **) malloc(sizeof(Matrix *) * new_size);			// Allocating memory for new layers array
+
+	int i;
+	for(i = 0; i < size; i+=2) {				// Create each layer of the network
+
+		int index = (i * 2) - 1;				// Starting index for the layer in the new_layers array
+														// Note: Each layer has 4 components (input, weights, bias, outputs)
+
+		if(index == -1) {							// Input layer, creating empty matrix
+			index = 0;								// 0-based indexing, need to remap the index of the layers array to 0
+			new_layers[0] = Matrix_create(1, (*m)[0]->rows);				// Declaring inputs
+		}	
+
+		new_layers[index + 1] = (*m)[i];			// Weights matrix
+		new_layers[index + 2] = (*m)[i + 1];	// Bias matrix
+		new_layers[index + 3] = Matrix_create(1, (*m)[i+1]->columns);		// Hidden layer
+
+	}
+
+	*m = new_layers;								// Resetting the 2-D array that was passed by reference
+	return new_size;								// Returning new size of the array
+
 }
 /*********************************************/
 
@@ -31,99 +80,30 @@ NN_sigmoid_map(Matrix *m) {
 
 
 /************* Public functions *************/
-void NN_set(Matrix *m, NeuralNetwork *nn) {
-	// Set NN	
+void NN_set(Matrix **m, int size, NeuralNetwork *nn) {
+
+	int new_size = NN_remap_layers(&m, size);		// Remap the layers array to include layers of nodes as well
+
+	// Declaring NN values
+	nn->layers = m;								// Setting nn layer data
+	nn->layer_count = new_size;				// Setting layer count for future operations
+
 }
 
 
 Matrix* NN_feedforward(NeuralNetwork nn, float data[]) {
 
-	// ----- Building architecture of network -----
-	Matrix *inputs = Matrix_set(data, 1, nn.arch.inputs);				// Defining vector and setting to input data
-	Matrix *hidden = Matrix_create(1, nn.arch.hidden_nodes);			// Creating vector for input nodes
-	Matrix *output = Matrix_create(1, nn.arch.outputs); 				// Creating vector for output nodes
+	// Declaring inputs of network
+	nn.layers[0] = Matrix_set(data, 1, nn.arch.inputs);	
 
+	// Feed forward algorithm
+	int i;
+	for(i = -1; i < nn.layer_count; i+=4) {
+		int index = (i == -1)? 0: i;			// Remapping index 0, otherwise [index = i]
+		Matrix *data = Matrix_multiply(nn.layers[index], nn.layers[index+1]);
+		data = Matrix_add(data, nn.layers[index+2]);
+		nn.layers[index+3] = NN_sigmoid_map(data);
+	}
 
-	float weights_1[] = {\
-		0.43539230051843947,-0.02065032825041091,0.019108774130658146,-0.18793425230191763,	\
-		0.5730059800179077,-0.3985145796820122,0.45247556261757094,-0.14951021311829882,		\
-		0.0867230415726905,-0.951140545578671,-0.34949493270378973,-0.5640115159285255,		\
-		0.8443632238447829,0.30048712084207874,0.48626392300583143,-0.6085350062085038,		\
-		-0.5295328147011433,-0.9232621663022922,0.5697627157639107,-0.41763286028598445		\
-	};
-
-	float weights_2[] = {\
-		165.34432400804772,-184.4962265107306,-235.68403926131995,-217.46373814544663,		\
-		0.903049491787723,-0.09600119869105694,-0.12902490689994806,0.6458222230959201,		\
-		166.4229893725542,-183.3935384234813,-236.73138036584993,-216.7631329707076,			\
-		-0.28657341286209603,0.4438008781030547,0.15319508736841803,0.1728806681154469		\
-	};
-	
-	float b_1[] = {0.0,1.9970720598181246e-80,0.0,-1.0699438457691551e-76};	
-
-	float b_2[] = {165.82511434556375,-183.9384511051835,-236.66256225438315,-217.70618586720568};
-
-	Matrix *syn_weights_1 = Matrix_set(weights_1, nn.arch.inputs, nn.arch.hidden_nodes);			// Creating first layer of weights
-	Matrix *syn_weights_2 = Matrix_set(weights_2, nn.arch.hidden_nodes, nn.arch.outputs);			// Creating second layer of weights
-	Matrix *bias_1 = Matrix_set(b_1, 1, nn.arch.hidden_nodes);											// Creating bias for first layer of hidden nodes
-   Matrix *bias_2 = Matrix_set(b_2, 1, nn.arch.outputs);													// Creating bias for output nodes	
-
-#ifdef DEBUG
-	printf(" ----- Definied Matricies -----\n");						// If debugging, print data to the console
-	printf("input:\n");
-	Matrix_print(inputs);
-	printf("\nhidden:\n");
-	Matrix_print(hidden);
-	printf("output:\n");
-	Matrix_print(output);
-	printf("\n\nsyn_weights_1:\n");
-	Matrix_print(syn_weights_1);
-	printf("\nsyn_weights_2:\n");
-	Matrix_print(syn_weights_2);
-	printf("\n\nbias_1:\n");
-	Matrix_print(bias_1);
-	printf("\nbias_2:\n");
-	Matrix_print(bias_2);
-	printf(" ------------------------------\n\n");
-
-	printf("\n Training the network\n\n");
-#endif
-	
-	// ----- Feed Forward Algorithm -----
-	Matrix *l0 = inputs;												// layer 0 - inputs
-	Matrix *l1 = Matrix_multiply(l0, syn_weights_1);		// layer 1 - hidden layer (multiplying inputs by first layer of weights)
-
-#ifdef DEBUG
-	printf("l1 - before adding bias\n");
-	Matrix_print(l1);
-#endif
-
-	l1 = Matrix_add(l1, bias_1);									// 			adding bias to layer 1
-
-#ifdef DEBUG
-	printf("l1 - before sigmoid: \n");
-	Matrix_print(l1);
-#endif
-
-	l1 = NN_sigmoid_map(l1);										// 			activation function
-
-	Matrix *l2 = Matrix_multiply(l1, syn_weights_2);		// layer 2 - output layer (multiplying hidden layer by second layer of weights)
-
-#ifdef DEBUG
-	printf("l2 - before adding bias\n");
-	Matrix_print(l2);
-#endif
-
-	l2 = Matrix_add(l2, bias_2);									// 			adding bias to layer 2
-
-#ifdef DEBUG
-	printf("l2 - before sigmoid map\n");
-	Matrix_print(l2);
-#endif
-
-	l2 = NN_sigmoid_map(l2);										//				activation function
-
-	return l2;															// Return the output of the network
+	return nn.layers[nn.layer_count - 1];	// Return output layer
 }
-
-

@@ -24,10 +24,11 @@ int main(int argc, char **argv) {
 	CSVData *bias_2 = csv_read("data/bias_2.csv");
 
 	// Testing to make sure that the values were indeed read into memory (and that the algo to load into memory works)
-	Matrix *w_1 = Matrix_set(csvtofloat(weights_1), weights_1->rows, weights_1->cols);
-	printf("weights_1 matrix:\n");
-	Matrix_print(w_1);
-	printf("\n");
+	Matrix **m = (Matrix **) malloc(sizeof(Matrix *) * 4);
+	m[0] = Matrix_set(csvtofloat(weights_1), weights_1->rows, weights_1->cols);
+	m[1] = Matrix_set(csvtofloat(bias_1), bias_1->rows, bias_1->cols);
+	m[2] = Matrix_set(csvtofloat(weights_2), weights_2->rows, weights_2->cols);
+	m[3] = Matrix_set(csvtofloat(bias_2), bias_2->rows, bias_2->cols);
 
 	// Sample program
 	NeuralNetwork nn = (NeuralNetwork){						\
@@ -39,14 +40,31 @@ int main(int argc, char **argv) {
 		}																\
 	};
 
+	// Setting the layers of the neural network
+	NN_set(m, 4, &nn);
+
+#ifdef DEBUG
+	printf("Neural Network layer data:\n");
+	int i;
+	for(i=0; i < nn.layer_count; i++) {
+		printf(" nn.layers[%d]\n", i);
+		Matrix_print(nn.layers[i]);
+		printf("\n");
+	}
+#endif
+
 	// Get input data from can bus and convert data to float variables
-	float input_data[] = {195,195,10,195,195};
+	float input_data[] = {195,195,195,195,195};
+	printf("input data:\n   ");
+	int i;
+	for(i = 0; i < 5; i++) {
+		printf("%6.3f ", input_data[i]);
+	}
+	printf("\n");
 
 	Matrix *result = NN_feedforward(nn, input_data);
 
-#ifdef DEBUG
 	printf("\n ***** Result *****\n");
-#endif
 	Matrix_print(result);
 
 	return 0;

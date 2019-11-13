@@ -1,0 +1,4 @@
+weights_1.csv
+bias_1.csv
+weights_2.csv
+bias_2.csv

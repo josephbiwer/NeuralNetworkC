@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 #include "fileio.h"
 
 #define KB		1024
@@ -15,6 +16,68 @@
 #define GB		MB * 1024
 
 
+/***************** FILE/DIR Operations *****************/
+/**
+ * @brief Get file names of all .csv files inside the specified directory
+ * @param dr Directory to search for the files in
+ * @return files List of .csv files that were present in the directory
+ */
+static char**
+dir_getcsv(DIR *dr) {
+	struct dirent *de;
+	int count = 0;
+	
+	// Allocating array of strings for file names
+	char  **files = (char **) malloc(sizeof(char *) * 100);
+	int i;
+	for(i = 0; i < 100; i++)
+		files[i] = (char *) malloc(sizeof(char) * 100);
+
+	// Get files from directory
+	while((de = readdir(dr)) != NULL) {
+
+		char file_name[40];									// Making copy of file name to use (strtok modifies original string)
+		strcpy(file_name, de->d_name);					// Copying file name
+
+		char file_ext[10];									// Allocating array to hold file extension
+		char *token = strtok(de->d_name, ".");			// Tokenize string
+
+		while(token) {											// While token exists
+			strcpy(file_ext, token);						// Copy token into file extension
+			token = strtok(NULL, ".");						// Get next token
+		}
+
+		// The file extension is stored in file_ext at this point
+
+		if(strcmp(file_ext, "csv") == 0) {				// File extension == csv?	
+			strcpy(files[count], file_name);				//			if so, copy the file name into an array that is to be returned later
+			count++;												//			increase count of csv files stored in the array
+		}
+			
+	}				// If more files exist, keep reading them into memory
+
+	return files;												// Return csv files
+}
+
+
+char** dir_get(const char *path) {
+
+	DIR *dr = opendir(path);								// Attempt to open specified directoy
+
+	if(dr == NULL) {											// If the program couldn't open the directory
+		printf("can't open the specified directory\n");
+		return NULL;											// Print error message and return null
+	}
+
+	char **files = dir_getcsv(dr);						// Get file names of all csv data in specified directory
+
+	closedir(dr);												// Close the directory
+	return files;												// Return all csv file names
+}
+
+
+
+/***************** File I/O Operations *****************/
 CSVData* csv_read(char *file) {
 
 	// Reading data into the buffer
@@ -63,6 +126,8 @@ CSVData* csv_read(char *file) {
 FileData* file_read(char *file) {
 
 	FileData *dat = (FileData *)malloc(sizeof(FileData));
+
+	strcpy(dat->name, file);												// Copy file name into data struct
 
 #ifdef DEBUG
 	printf("Opening file %s for read operation\n", file);

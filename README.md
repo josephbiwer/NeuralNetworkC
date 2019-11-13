@@ -17,3 +17,6 @@ To run the program, make the program and then exectute the *run* file.
 make
 ./build/run
 ```
+
+### Execution
+A sample program can be executed with the above commands, which loads in data from a file  (*data/order.txt*), followed by loading the matricies into memory from the specified files in *data/order.txt*. The neural network then performs the feed forward algorithm on the data and prints the output to the terminal.

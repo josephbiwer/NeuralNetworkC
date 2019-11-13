@@ -10,6 +10,7 @@
 #define _FILEIO_H
 
 typedef struct {
+	char name[20];
 	char **buffer;
 	int rows;
 } FileData;				/**< Buffer to read data from file that organizes the data in such a way that the data is organized by each row in the file */
@@ -18,6 +19,13 @@ typedef struct {
 	int rows, cols;
 	char **data;
 } CSVData;
+
+/**
+ * @brief Get directory content
+ * @param path Relative path to the directory
+ * @return none
+ */
+char** dir_get(const char *);
 
 /**
  * @brief Read data from csv file and return array of strings
